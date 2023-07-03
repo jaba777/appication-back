@@ -23,6 +23,13 @@ const {
 } = require("./middleware/index");
 module.context.use(router);
 
+const url = module.context.configuration.SMTP_BASE_URL;
+const apiKey = module.context.configuration.API_KEY_SMTP;
+const config={
+  url,
+  apiKey
+}
+
 // 3 hour
 const maxAge = 5 * 60 * 60 * 1000;
 
@@ -30,10 +37,10 @@ router
   .post("/createSession", (req, res) => {
     try {
       const { phoneNumber } = req.body;
-    
+      const randomNum = generateOTP(6);
+      
 
-
-      const response = responseFunc(phoneNumber);
+      const response = responseFunc(phoneNumber,randomNum,config)
 
       if (response.status === 200 && response.json.return === true) {
         const sessionCreationTime = Date.now();
