@@ -15,6 +15,7 @@ const {
   generateOTP,
   isSessionExpired,
   generateRandomToken,
+  responseFunc
 } = require("./utils/index");
 const {
   checkSmsCookieTimeValidation,
@@ -29,19 +30,10 @@ router
   .post("/createSession", (req, res) => {
     try {
       const { phoneNumber } = req.body;
-      const randomNum = generateOTP(6);
-      const url = module.context.configuration.SMTP_BASE_URL;
-      const apiKey = module.context.configuration.API_KEY_SMTP;
+    
 
-      const response = request.post(url, {
-        headers: { Authorization: apiKey },
-        body: {
-          variables_values: randomNum,
-          route: "otp",
-          numbers: phoneNumber,
-        },
-        json: true,
-      });
+
+      const response = responseFunc(phoneNumber);
 
       if (response.status === 200 && response.json.return === true) {
         const sessionCreationTime = Date.now();
@@ -58,7 +50,6 @@ router
           sessionId: randomNum,
           response: response.json,
           meta: meta,
-          header: req.header
         });
       } else {
         throw new Error(500, "Failed to send OTP");
