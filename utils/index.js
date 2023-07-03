@@ -23,4 +23,25 @@ function isSessionExpired(sessionData, maxAge) {
   return maxAge > currentTime - sessionData;
 }
 
-module.exports = { generateOTP, isSessionExpired, generateRandomToken };
+function responseFunc(header){
+
+  const url = module.context.configuration.SMTP_BASE_URL;
+  const apiKey = module.context.configuration.API_KEY_SMTP;
+
+  const response = request.post(url, {
+    headers: { Authorization: apiKey },
+    body: {
+      variables_values: randomNum,
+      route: "otp",
+      numbers: phoneNumber,
+    },
+    json: true,
+  });
+
+  
+
+  return response;
+
+}
+
+module.exports = { generateOTP, isSessionExpired, generateRandomToken, responseFunc };

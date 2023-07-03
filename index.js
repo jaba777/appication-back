@@ -58,6 +58,7 @@ router
           sessionId: randomNum,
           response: response.json,
           meta: meta,
+          header: req.header
         });
       } else {
         throw new Error(500, "Failed to send OTP");
