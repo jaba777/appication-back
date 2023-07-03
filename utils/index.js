@@ -22,22 +22,24 @@ function isSessionExpired(sessionData, maxAge) {
 
   return maxAge > currentTime - sessionData;
 }
-const request = require("@arangodb/request");
 
 function responseFunc(phoneNumber,randomNum,config) {
   
-  const responseURL = request.post(config.url, {
-    headers: { Authorization: config.apiKey },
-    body: {
-      variables_values: randomNum,
-      route: "otp",
-      numbers: phoneNumber,
-    },
-    json: true,
-  });
+  const responseURL = [
+    config.url, {
+         headers: { Authorization: config.apiKey },
+         body: {
+         variables_values: randomNum,
+          route: "otp",
+          numbers: phoneNumber,
+         },
+         json: true,
+       }
+      ]
 
   return responseURL;
 }
+
 
 
 module.exports = {

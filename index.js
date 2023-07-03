@@ -15,7 +15,7 @@ const {
   generateOTP,
   isSessionExpired,
   generateRandomToken,
-  responseFunc
+  responseFunc,
 } = require("./utils/index");
 const {
   checkSmsCookieTimeValidation,
@@ -25,10 +25,10 @@ module.context.use(router);
 
 const url = module.context.configuration.SMTP_BASE_URL;
 const apiKey = module.context.configuration.API_KEY_SMTP;
-const config={
+const config = {
   url,
-  apiKey
-}
+  apiKey,
+};
 
 // 3 hour
 const maxAge = 5 * 60 * 60 * 1000;
@@ -38,9 +38,8 @@ router
     try {
       const { phoneNumber } = req.body;
       const randomNum = generateOTP(6);
-      
-
-      const response = responseFunc(phoneNumber,randomNum,config)
+      const responseURL = responseFunc(phoneNumber, randomNum, config);
+      const response = request.post(...responseURL);
 
       if (response.status === 200 && response.json.return === true) {
         const sessionCreationTime = Date.now();
@@ -77,31 +76,26 @@ router
 router
   .post("/verifyOTP", checkSmsCookieTimeValidation, (req, res) => {
     try {
-      const { sessionId, otp } = req.body;
+      const { sessionId } = req.body;
 
       const sessionData = sessionDetails.firstExample({ sessionId }); //firstExample is build function of arrangodb
 
-      const url = module.context.configuration.SMTP_BASE_URL;
-      const apiKey = module.context.configuration.API_KEY_SMTP;
+      const responseURL = responseFunc(
+        sessionData.phoneNumber,
+        sessionData.sessionId,
+        config
+      );
 
-      const response = request.post(url, {
-        headers: { Authorization: apiKey },
-        body: {
-          message: `Your OTP is ${otp}`,
-          variables_values: sessionData.sessionId,
-          route: "otp",
-          numbers: sessionData.phoneNumber,
-        },
-        json: true,
-      });
+      const response = request.post(...responseURL);
 
       const randomToken = generateRandomToken(50);
-      res.cookie("SessionId", randomToken, {
-        httpOnly: true,
-        ttl: maxAge,
-      });
-
+     
       if (response.status === 200 && response.json.return === true) {
+        res.cookie("SessionId", randomToken, {
+          httpOnly: true,
+          ttl: maxAge,
+        });
+  
         sessionDetails.update(sessionData._id, { verified: true });
         res.send({ message: "OTP verification successful" });
       } else {
